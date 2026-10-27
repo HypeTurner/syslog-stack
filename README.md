@@ -10,8 +10,8 @@
 Требования: Linux, Docker Engine + плагин Docker Compose v2, root.
 
 ```bash
-git clone <URL\\\\\\\_ЭТОГО\\\\\\\_РЕПОЗИТОРИЯ> /opt/syslog-stack
-cd /opt/syslog-stack \\\\\\\&\\\\\\\& sudo bash install.sh
+git clone <URL_ЭТОГО_РЕПОЗИТОРИЯ> /opt/syslog-stack
+cd /opt/syslog-stack && sudo bash install.sh
 ```
 
 ## Схема
