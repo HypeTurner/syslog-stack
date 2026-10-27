@@ -28,7 +28,7 @@ cd /opt/syslog-stack && sudo bash install.sh
 |syslog-ng|514/udp, 514/tcp, 601/tcp|приём логов, буфер, файловый архив|
 |Alloy|127.0.0.1:12345|UI для отладки (наружу не публикуется)|
 |Loki|внутри сети Docker|хранение и поиск|
-|Grafana|`GRAFANA\\\\\\\_PORT` (по умолчанию 3000)|интерфейс, логин `admin`|
+|Grafana|`GRAFANA_PORT` (по умолчанию 3000)|интерфейс, логин `admin`|
 
 ## Проверка
 
@@ -43,7 +43,7 @@ cd /opt/syslog-stack && sudo bash install.sh
 **Linux (rsyslog)** — файл `/etc/rsyslog.d/90-forward.conf`:
 
 ```
-\\\\\\\*.\\\\\\\* action(type="omfwd" target="IP\\\\\\\_СЕРВЕРА\\\\\\\_ЛОГОВ" port="514" protocol="tcp"
+*.* action(type="omfwd" target="IP_СЕРВЕРА_ЛОГОВ" port="514" protocol="tcp"
            queue.type="LinkedList" queue.filename="fwd" queue.maxdiskspace="1g"
            queue.saveonshutdown="on" action.resumeRetryCount="-1")
 ```
@@ -59,16 +59,16 @@ cd /opt/syslog-stack && sudo bash install.sh
 
 |Что|Где настраивается|По умолчанию|
 |-|-|-|
-|Поиск в Grafana (Loki)|`LOKI\\\\\\\_RETENTION`|744h (31 день)|
-|Сжатие файлового архива|`ARCHIVE\\\\\\\_COMPRESS\\\\\\\_AFTER\\\\\\\_DAYS`|2 дня|
-|Удаление файлового архива|`ARCHIVE\\\\\\\_RETENTION\\\\\\\_DAYS`|180 дней|
+|Поиск в Grafana (Loki)|`LOKI_RETENTION`|744h (31 день)|
+|Сжатие файлового архива|`ARCHIVE_COMPRESS_AFTER_DAYS`|2 дня|
+|Удаление файлового архива|`ARCHIVE_RETENTION_DAYS`|180 дней|
 |Дисковый буфер syslog-ng|`syslog-ng/syslog-ng.conf` (`disk-buf-size`)|2 ГБ|
 
 Архив ротируется по дням самим syslog-ng (имя файла содержит дату), а `scripts/archive-maintenance.sh`
-раз в сутки сжимает и удаляет старые файлы. После изменения `LOKI\\\\\\\_RETENTION` выполни `docker compose up -d`.
+раз в сутки сжимает и удаляет старые файлы. После изменения `LOKI_RETENTION` выполни `docker compose up -d`.
 
 **Каталог архива и данные Loki лучше держать на отдельном диске/разделе.**
-Данные Loki лежат в Docker volume `syslog-stack\\\\\\\_loki-data`; чтобы вынести на другой диск, замени volume на bind-mount в `docker-compose.yml`.
+Данные Loki лежат в Docker volume `syslog-stack_loki-data`; чтобы вынести на другой диск, замени volume на bind-mount в `docker-compose.yml`.
 
 ## Безопасность
 
@@ -90,7 +90,7 @@ Plain syslog не шифруется. Для критичных сегменто
 ```bash
 docker compose ps                 # состояние
 docker compose logs -f syslog-ng  # логи компонента (также alloy, loki, grafana)
-docker compose pull \\\\\\\&\\\\\\\& docker compose up -d   # обновление (после правки версий в .env)
+docker compose pull && docker compose up -d   # обновление (после правки версий в .env)
 docker compose down               # остановить (данные сохраняются)
 docker compose down -v            # остановить и УДАЛИТЬ данные Loki/Grafana
 ```
