@@ -10,7 +10,7 @@
 Требования: Linux, Docker Engine + плагин Docker Compose v2, root.
 
 ```bash
-git clone <URL_ЭТОГО_РЕПОЗИТОРИЯ> /opt/syslog-stack
+git clone "https://github.com/HypeTurner/syslog-stack" /opt/syslog-stack
 cd /opt/syslog-stack && sudo bash install.sh
 ```
 
