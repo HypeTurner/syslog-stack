@@ -1,0 +1,41 @@
+// Приём syslog (RFC5424/TCP) от syslog-ng и отправка в Loki.
+// Метки держим малыми: host, app, severity, facility. IP/user/session в метки НЕ выносить.
+
+loki.relabel "syslog" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__syslog_message_hostname"]
+    target_label  = "host"
+  }
+  rule {
+    source_labels = ["__syslog_message_app_name"]
+    target_label  = "app"
+  }
+  rule {
+    source_labels = ["__syslog_message_severity"]
+    target_label  = "severity"
+  }
+  rule {
+    source_labels = ["__syslog_message_facility"]
+    target_label  = "facility"
+  }
+}
+
+loki.source.syslog "network" {
+  listener {
+    address                = "0.0.0.0:1514"
+    protocol               = "tcp"
+    syslog_format          = "rfc5424"
+    use_incoming_timestamp = true
+    labels                 = { job = "syslog" }
+  }
+  relabel_rules = loki.relabel.syslog.rules
+  forward_to    = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

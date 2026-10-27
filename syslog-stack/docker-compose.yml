@@ -1,0 +1,78 @@
+name: syslog-stack
+
+services:
+  syslog-ng:
+    image: balabit/syslog-ng:${SYSLOGNG_VERSION:-4.8.1}
+    container_name: syslog-ng
+    restart: unless-stopped
+    ports:
+      - "514:514/udp"
+      - "514:514/tcp"
+      - "601:601/tcp"
+    volumes:
+      - ./syslog-ng/syslog-ng.conf:/etc/syslog-ng/syslog-ng.conf:ro
+      - ${ARCHIVE_DIR:-/srv/syslog/archive}:/var/log/remote
+      - syslogng-buffer:/var/lib/syslog-ng
+    depends_on:
+      - alloy
+    networks: [logs]
+
+  alloy:
+    image: grafana/alloy:${ALLOY_VERSION:-v1.10.0}
+    container_name: alloy
+    restart: unless-stopped
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - "127.0.0.1:12345:12345"   # UI Alloy, только локально (отладка)
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - loki
+    networks: [logs]
+
+  loki:
+    image: grafana/loki:${LOKI_VERSION:-3.5.0}
+    container_name: loki
+    restart: unless-stopped
+    command:
+      - -config.file=/etc/loki/loki.yaml
+      - -config.expand-env=true
+    environment:
+      LOKI_RETENTION: ${LOKI_RETENTION:-744h}
+    mem_limit: ${LOKI_MEM_LIMIT:-2g}
+    volumes:
+      - ./loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+    networks: [logs]
+
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-12.0.0}
+    container_name: grafana-logs
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?задай GRAFANA_ADMIN_PASSWORD в .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    mem_limit: ${GRAFANA_MEM_LIMIT:-512m}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - loki
+    networks: [logs]
+
+networks:
+  logs:
+
+volumes:
+  syslogng-buffer:
+  alloy-data:
+  loki-data:
+  grafana-data:
