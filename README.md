@@ -50,8 +50,8 @@ cd /opt/syslog-stack && sudo bash install.sh
 
 затем `systemctl restart rsyslog`.
 
-**Сетевое оборудование, ESXi, Proxmox и т.п.** — в настройках укажи syslog-сервер `IP:514` (UDP или TCP).
-На устройствах включи NTP и единый часовой пояс (лучше UTC), иначе события будет трудно сопоставлять.
+**Сетевое оборудование, ESXi, Proxmox и т.п.** — в настройках указать syslog-сервер `IP:514` (UDP или TCP).
+На устройствах включить NTP и единый часовой пояс (лучше UTC), иначе события будет трудно сопоставлять.
 
 **Windows** — NXLog или аналог с отправкой на `IP:514`/`601`.
 
@@ -68,22 +68,7 @@ cd /opt/syslog-stack && sudo bash install.sh
 раз в сутки сжимает и удаляет старые файлы. После изменения `LOKI_RETENTION` выполни `docker compose up -d`.
 
 **Каталог архива и данные Loki лучше держать на отдельном диске/разделе.**
-Данные Loki лежат в Docker volume `syslog-stack_loki-data`; чтобы вынести на другой диск, замени volume на bind-mount в `docker-compose.yml`.
-
-## Безопасность
-
-Docker обходит правила `ufw`/`firewalld` для published-портов, поэтому ограничивай источники через цепочку `DOCKER-USER`:
-
-```bash
-# разрешить только свою сеть, остальное на 514/601 отбросить
-iptables -I DOCKER-USER -p udp --dport 514 ! -s 10.0.0.0/8 -j DROP
-iptables -I DOCKER-USER -p tcp --dport 514 ! -s 10.0.0.0/8 -j DROP
-iptables -I DOCKER-USER -p tcp --dport 601 ! -s 10.0.0.0/8 -j DROP
-```
-
-(замени `10.0.0.0/8` на свою сеть и сохрани правила штатным для дистрибутива способом).
-Plain syslog не шифруется. Для критичных сегментов настрой TLS в syslog-ng (порт 6514).
-Доступ к Grafana лучше закрыть за reverse proxy с HTTPS.
+Данные Loki лежат в Docker volume `syslog-stack_loki-data`; чтобы вынести на другой диск - необходимо заменить volume на bind-mount в `docker-compose.yml`.
 
 ## Обслуживание
 
